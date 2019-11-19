@@ -45,7 +45,7 @@ public abstract class GrizzlyHttpMessage extends BaseHttpMessage implements Http
   protected String path;
 
   public GrizzlyHttpMessage(HttpRequestPacket requestPacket,
-                            MultiMap<String, String> headers,
+                            CaseInsensitiveMultiMap headers,
                             InetSocketAddress localAddress) {
     super(headers);
     this.requestPacket = requestPacket;
@@ -118,7 +118,7 @@ public abstract class GrizzlyHttpMessage extends BaseHttpMessage implements Http
   }
 
   @Override
-  public MultiMap<String, String> getHeaders() {
+  public CaseInsensitiveMultiMap getHeaders() {
     if (this.headers == null) {
       initializeHeaders();
     }
