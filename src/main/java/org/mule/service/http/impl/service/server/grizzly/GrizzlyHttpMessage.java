@@ -9,7 +9,6 @@ package org.mule.service.http.impl.service.server.grizzly;
 import static java.lang.Long.parseLong;
 import static org.mule.runtime.core.api.util.StringUtils.isEmpty;
 import static org.mule.runtime.http.api.HttpHeaders.Names.CONTENT_LENGTH;
-import static org.mule.runtime.http.api.server.HttpServerProperties.PRESERVE_HEADER_CASE;
 import static org.mule.runtime.http.api.utils.HttpEncoderDecoderUtils.decodeQueryString;
 import static org.mule.runtime.http.api.utils.UriCache.getUriFromString;
 import org.mule.runtime.api.util.MultiMap;
@@ -126,7 +125,7 @@ public abstract class GrizzlyHttpMessage extends BaseHttpMessage implements Http
   }
 
   private void initializeHeaders() {
-    this.headers = new CaseInsensitiveMultiMap(!PRESERVE_HEADER_CASE);
+    this.headers = new CaseInsensitiveMultiMap();
     for (String grizzlyHeaderName : requestPacket.getHeaders().names()) {
       final Iterable<String> headerValues = requestPacket.getHeaders().values(grizzlyHeaderName);
       for (String headerValue : headerValues) {

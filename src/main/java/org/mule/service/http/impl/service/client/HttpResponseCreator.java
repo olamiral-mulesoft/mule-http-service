@@ -22,7 +22,6 @@ import org.mule.service.http.impl.service.domain.entity.multipart.StreamedMultip
 
 import com.ning.http.client.Response;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map.Entry;
@@ -37,7 +36,7 @@ public class HttpResponseCreator {
   private static final String HEADER_CONTENT_TYPE = CONTENT_TYPE.toLowerCase();
   private static final String HEADER_CONTENT_LENGTH = CONTENT_LENGTH.toLowerCase();
 
-  public HttpResponse create(Response response, InputStream inputStream) throws IOException {
+  public HttpResponse create(Response response, InputStream inputStream) {
     HttpResponseBuilder responseBuilder = HttpResponse.builder();
     responseBuilder.statusCode(response.getStatusCode());
     responseBuilder.reasonPhrase(response.getStatusText());

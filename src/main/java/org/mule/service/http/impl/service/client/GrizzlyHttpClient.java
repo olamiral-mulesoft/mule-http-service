@@ -29,7 +29,6 @@ import static org.mule.runtime.http.api.HttpHeaders.Names.CONNECTION;
 import static org.mule.runtime.http.api.HttpHeaders.Names.CONTENT_LENGTH;
 import static org.mule.runtime.http.api.HttpHeaders.Names.TRANSFER_ENCODING;
 import static org.mule.runtime.http.api.HttpHeaders.Values.CLOSE;
-import static org.mule.runtime.http.api.server.HttpServerProperties.PRESERVE_HEADER_CASE;
 import org.mule.runtime.api.exception.MuleRuntimeException;
 import org.mule.runtime.api.scheduler.Scheduler;
 import org.mule.runtime.api.scheduler.SchedulerConfig;
@@ -108,10 +107,6 @@ public class GrizzlyHttpClient implements HttpClient {
   public static final String CUSTOM_MAX_HTTP_PACKET_HEADER_SIZE = SYSTEM_PROPERTY_PREFIX + "http.client.headerSectionSize";
 
   private static final Logger logger = LoggerFactory.getLogger(GrizzlyHttpClient.class);
-
-  private static final String HEADER_CONNECTION = CONNECTION.toLowerCase();
-  private static final String HEADER_CONTENT_LENGTH = CONTENT_LENGTH.toLowerCase();
-  private static final String HEADER_TRANSFER_ENCODING = TRANSFER_ENCODING.toLowerCase();
 
   private static boolean DEFAULT_DECOMPRESS = getBoolean(DEFAULT_DECOMPRESS_PROPERTY_NAME);
 
@@ -439,7 +434,7 @@ public class GrizzlyHttpClient implements HttpClient {
     return reqBuilder.build();
   }
 
-  private void setStreamingBodyToRequestBuilder(HttpRequest request, RequestBuilder builder) throws IOException {
+  private void setStreamingBodyToRequestBuilder(HttpRequest request, RequestBuilder builder) {
     if (isRequestStreamingEnabled()) {
       FeedableBodyGenerator bodyGenerator = new FeedableBodyGenerator();
       FeedableBodyGenerator.Feeder nonBlockingFeeder =
@@ -475,21 +470,20 @@ public class GrizzlyHttpClient implements HttpClient {
       // This is a workaround for https://github.com/javaee/grizzly/issues/1994
       boolean specialHeader = false;
 
-      if (!hasTransferEncoding && headerName.equalsIgnoreCase(HEADER_TRANSFER_ENCODING)) {
+      if (!hasTransferEncoding && headerName.equalsIgnoreCase(TRANSFER_ENCODING)) {
         hasTransferEncoding = true;
         specialHeader = true;
-        builder.addHeader(PRESERVE_HEADER_CASE ? TRANSFER_ENCODING : HEADER_TRANSFER_ENCODING,
-                          request.getHeaderValue(headerName));
+        builder.addHeader(TRANSFER_ENCODING, request.getHeaderValue(headerName));
       }
-      if (!hasContentLength && headerName.equalsIgnoreCase(HEADER_CONTENT_LENGTH)) {
+      if (!hasContentLength && headerName.equalsIgnoreCase(CONTENT_LENGTH)) {
         hasContentLength = true;
         specialHeader = true;
-        builder.addHeader(PRESERVE_HEADER_CASE ? CONTENT_LENGTH : HEADER_CONTENT_LENGTH, request.getHeaderValue(headerName));
+        builder.addHeader(CONTENT_LENGTH, request.getHeaderValue(headerName));
       }
-      if (!hasContentLength && headerName.equalsIgnoreCase(HEADER_CONNECTION)) {
+      if (!hasContentLength && headerName.equalsIgnoreCase(CONNECTION)) {
         hasConnection = true;
         specialHeader = true;
-        builder.addHeader(PRESERVE_HEADER_CASE ? CONNECTION : HEADER_CONNECTION, request.getHeaderValue(headerName));
+        builder.addHeader(CONNECTION, request.getHeaderValue(headerName));
       }
 
       if (!specialHeader) {
@@ -501,20 +495,19 @@ public class GrizzlyHttpClient implements HttpClient {
 
     // If there's no transfer type specified, check the entity length to prioritize content length transfer
     if (!hasTransferEncoding && !hasContentLength && request.getEntity().getBytesLength().isPresent()) {
-      builder.addHeader(PRESERVE_HEADER_CASE ? CONTENT_LENGTH : HEADER_CONTENT_LENGTH,
-                        valueOf(request.getEntity().getBytesLength().getAsLong()));
+      builder.addHeader(CONTENT_LENGTH, valueOf(request.getEntity().getBytesLength().getAsLong()));
     }
 
     // If persistent connections are disabled, the "Connection: close" header must be explicitly added. AHC will
     // add "Connection: keep-alive" otherwise. (https://github.com/AsyncHttpClient/async-http-client/issues/885)
 
     if (!usePersistentConnections) {
-      if (hasConnection && logger.isDebugEnabled() && !CLOSE.equals(request.getHeaderValue(HEADER_CONNECTION))) {
+      if (hasConnection && logger.isDebugEnabled() && !CLOSE.equals(request.getHeaderValue(CONNECTION.toLowerCase()))) {
         logger.debug("Persistent connections are disabled in the HTTP requester configuration, but the request already "
             + "contains a Connection header with value {}. This header will be ignored, and a Connection: close header "
-            + "will be sent instead.", request.getHeaderValue(HEADER_CONNECTION));
+            + "will be sent instead.", request.getHeaderValue(CONNECTION.toLowerCase()));
       }
-      builder.setHeader(PRESERVE_HEADER_CASE ? CONNECTION : HEADER_CONNECTION, CLOSE);
+      builder.setHeader(CONNECTION, CLOSE);
     }
   }
 
