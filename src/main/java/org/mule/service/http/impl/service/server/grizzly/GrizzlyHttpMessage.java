@@ -9,9 +9,11 @@ package org.mule.service.http.impl.service.server.grizzly;
 import static java.lang.Long.parseLong;
 import static org.mule.runtime.core.api.util.StringUtils.isEmpty;
 import static org.mule.runtime.http.api.HttpHeaders.Names.CONTENT_LENGTH;
+import static org.mule.runtime.http.api.domain.CaseInsensitiveMultiMap.unmodifiableCaseInsensitiveMultiMap;
 import static org.mule.runtime.http.api.utils.HttpEncoderDecoderUtils.decodeQueryString;
 import static org.mule.runtime.http.api.utils.UriCache.getUriFromString;
 import org.mule.runtime.api.util.MultiMap;
+import org.mule.runtime.http.api.domain.AbstractCaseInsensitiveMultiMap;
 import org.mule.runtime.http.api.domain.CaseInsensitiveMultiMap;
 import org.mule.runtime.http.api.domain.HttpProtocol;
 import org.mule.runtime.http.api.domain.message.BaseHttpMessage;
@@ -117,7 +119,7 @@ public abstract class GrizzlyHttpMessage extends BaseHttpMessage implements Http
   }
 
   @Override
-  public CaseInsensitiveMultiMap getHeaders() {
+  public AbstractCaseInsensitiveMultiMap getHeaders() {
     if (this.headers == null) {
       initializeHeaders();
     }
@@ -132,7 +134,7 @@ public abstract class GrizzlyHttpMessage extends BaseHttpMessage implements Http
         this.headers.put(grizzlyHeaderName, headerValue);
       }
     }
-    this.headers = this.headers.toImmutableMultiMap();
+    this.headers = unmodifiableCaseInsensitiveMultiMap(this.headers);
   }
 
   @Override
